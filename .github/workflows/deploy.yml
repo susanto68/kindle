@@ -1,0 +1,67 @@
+name: Deploy Kindle Reader
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build Docker image
+      run: |
+        docker build -t kindle-reader .
+        docker build -f Dockerfile.render -t kindle-reader-render .
+        
+    - name: Test container
+      run: |
+        docker run -d --name test-container -p 8080:80 kindle-reader
+        sleep 10
+        curl -f http://localhost:8080 || exit 1
+        docker stop test-container
+        docker rm test-container
+        
+    - name: Build and push to GitHub Container Registry
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ghcr.io/susanto68/kindle:latest
+          ghcr.io/susanto68/kindle:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Build and push Render image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.render
+        push: true
+        tags: |
+          ghcr.io/susanto68/kindle:render
+          ghcr.io/susanto68/kindle:render-${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Deploy to Oracle Cloud (Optional)
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "Ready for Oracle Cloud deployment"
+        echo "Use the built image: ghcr.io/susanto68/kindle:latest"
+        
+    - name: Deploy to Render (Optional)
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "Ready for Render deployment"
+        echo "Use the built image: ghcr.io/susanto68/kindle:render"
+        echo "Connect your GitHub repo to Render for automatic deployment"

@@ -1,0 +1,31 @@
+# Git files
+.git
+.gitignore
+
+# Documentation
+README.md
+deploy-oracle.md
+deploy.sh
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (don't copy into container)
+Dockerfile
+docker-compose.yml
+.dockerignore

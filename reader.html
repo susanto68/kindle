@@ -1,0 +1,42 @@
+<!-- file: reader.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- PDF.js (core + worker) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    // Ensure worker matches version above
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+</head>
+<body class="reader-body">
+  <header class="topbar">
+    <button class="back" onclick="history.back()">← Library</button>
+    <div class="bookname" id="bookName">Loading…</div>
+  </header>
+
+  <main id="viewer">
+    <canvas id="pdf-canvas"></canvas>
+    <div id="text-layer" class="textLayer"></div>
+  </main>
+
+  <footer class="controls">
+    <div class="nav">
+      <button id="prevPage" aria-label="Previous page">◀</button>
+      <span id="pageInfo">1 / 1</span>
+      <button id="nextPage" aria-label="Next page">▶</button>
+    </div>
+    <div class="tts">
+      <button id="playPause" aria-label="Play">▶ Play</button>
+    </div>
+  </footer>
+
+  <script src="reader.js"></script>
+</body>
+</html>
+
