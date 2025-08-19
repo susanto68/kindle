@@ -4,9 +4,6 @@ FROM php:8.2-apache
 # Set working directory
 WORKDIR /var/www/html
 
-# Install only essential PHP extensions
-RUN docker-php-ext-install zip
-
 # Enable Apache modules
 RUN a2enmod rewrite
 

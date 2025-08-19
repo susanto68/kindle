@@ -6,10 +6,6 @@ $status = [
     'status' => 'healthy',
     'timestamp' => date('c'),
     'php_version' => PHP_VERSION,
-    'extensions' => [
-        'zip' => extension_loaded('zip') ? 'loaded' : 'missing',
-        'curl' => extension_loaded('curl') ? 'loaded' : 'missing'
-    ],
     'books_count' => 0,
     'books_directory' => is_dir('books') ? 'exists' : 'missing'
 ];
