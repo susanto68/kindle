@@ -14,6 +14,9 @@ COPY . /var/www/html/
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
+# Create a simple test file to verify PHP is working
+RUN echo "<?php phpinfo(); ?>" > /var/www/html/test.php
+
 # Expose port 80
 EXPOSE 80
 
