@@ -4,45 +4,15 @@ FROM php:8.2-apache
 # Set working directory
 WORKDIR /var/www/html
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    libzip-dev \
-    unzip \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd \
-    && docker-php-ext-install zip \
-    && docker-php-ext-install curl \
-    && docker-php-ext-install mbstring \
-    && docker-php-ext-install fileinfo
-
 # Enable Apache modules
-RUN a2enmod rewrite headers deflate
+RUN a2enmod rewrite
 
-# Copy your application files
+# Copy application files
 COPY . /var/www/html/
 
-# Set proper permissions
+# Set permissions
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html \
-    && chmod -R 755 /var/www/html/books
-
-# Create Apache virtual host configuration
-RUN echo '<VirtualHost *:80>\n\
-    DocumentRoot /var/www/html\n\
-    <Directory /var/www/html>\n\
-        AllowOverride All\n\
-        Require all granted\n\
-        Options Indexes FollowSymLinks\n\
-    </Directory>\n\
-    ErrorLog ${APACHE_LOG_DIR}/kindle_error.log\n\
-    CustomLog ${APACHE_LOG_DIR}/kindle_access.log combined\n\
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+    && chmod -R 755 /var/www/html
 
 # Expose port 80
 EXPOSE 80
