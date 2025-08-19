@@ -4,8 +4,11 @@
 
 # Documentation
 README.md
-deploy-oracle.md
-deploy.sh
+deploy-*.md
+deploy-*.bat
+
+# Railway specific
+railway.json
 
 # Logs
 logs/
@@ -26,6 +29,6 @@ logs/
 Thumbs.db
 
 # Docker files (don't copy into container)
-Dockerfile
-docker-compose.yml
+Dockerfile*
+docker-compose*.yml
 .dockerignore
