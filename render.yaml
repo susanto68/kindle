@@ -12,7 +12,7 @@ services:
       - key: PORT
         value: 80
     buildCommand: |
-      docker build -t kindle-reader .
+      docker build -f Dockerfile.render.simple -t kindle-reader .
     startCommand: |
       docker run -p $PORT:80 kindle-reader
     autoDeploy: true

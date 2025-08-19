@@ -14,13 +14,16 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
+# Install PHP extensions with proper configuration
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd \
-    && docker-php-ext-install zip \
-    && docker-php-ext-install curl \
-    && docker-php-ext-install mbstring \
-    && docker-php-ext-install fileinfo
+    && docker-php-ext-install -j$(nproc) gd
+
+# Install other PHP extensions separately to avoid conflicts
+RUN docker-php-ext-install zip
+RUN docker-php-ext-install mbstring
+RUN docker-php-ext-install fileinfo
+
+# Note: curl is already included in PHP 8.2 base image
 
 # Enable Apache modules
 RUN a2enmod rewrite headers deflate
