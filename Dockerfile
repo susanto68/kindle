@@ -4,6 +4,23 @@ FROM php:8.2-apache
 # Set working directory
 WORKDIR /var/www/html
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-install zip \
+    && docker-php-ext-install curl \
+    && docker-php-ext-install mbstring \
+    && docker-php-ext-install fileinfo
+
 # Enable Apache modules
 RUN a2enmod rewrite
 
@@ -17,5 +34,5 @@ RUN chown -R www-data:www-data /var/www/html \
 # Expose port 80
 EXPOSE 80
 
-# Start Apache - use shell form for better compatibility
-CMD apache2-foreground
+# Start Apache
+CMD ["apache2-foreground"]
