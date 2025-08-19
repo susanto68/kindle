@@ -4,11 +4,9 @@
 
 # Documentation
 README.md
-deploy-*.md
-deploy-*.bat
 
-# Railway specific
-railway.json
+# GitHub Actions
+.github/
 
 # Logs
 logs/
@@ -27,8 +25,3 @@ logs/
 # OS files
 .DS_Store
 Thumbs.db
-
-# Docker files (don't copy into container)
-Dockerfile*
-docker-compose*.yml
-.dockerignore
