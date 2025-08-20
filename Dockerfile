@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Enable Apache modules
@@ -25,15 +26,18 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod -R 644 /var/www/html/books/*.pdf
 
-# Create health check file
+# Create a simple health check file
 RUN echo "<?php echo 'OK'; ?>" > /var/www/html/health.php
+
+# Create startup script
+RUN echo '#!/bin/bash\n\
+apache2-foreground &\n\
+sleep 10\n\
+curl -f http://localhost/health.html || exit 1\n\
+wait' > /startup.sh && chmod +x /startup.sh
 
 # Expose port 80
 EXPOSE 80
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost/health.html || exit 1
-
-# Start Apache
-CMD ["apache2-foreground"]
+# Use startup script instead of direct Apache command
+CMD ["/startup.sh"]
