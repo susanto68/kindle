@@ -21,22 +21,22 @@ RUN docker-php-ext-install \
 # Enable Apache modules
 RUN a2enmod rewrite headers
 
-# Copy custom Apache configuration
+# Copy custom Apache configuration to suppress domain warnings
 COPY apache.conf /etc/apache2/sites-available/000-default.conf
 
 # Copy all project files
 COPY . /var/www/html/
 
-# Set proper permissions
+# Set proper permissions for Railway
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod -R 644 /var/www/html/books/*.pdf
 
-# Create a simple health check endpoint
+# Create a reliable health check endpoint
 RUN echo '<?php http_response_code(200); echo "OK"; ?>' > /var/www/html/health.php
 
 # Expose port 8080 (Railway requirement)
 EXPOSE 8080
 
-# Use apache2-foreground as start command
+# Use apache2-foreground for proper signal handling in Railway
 CMD ["apache2-foreground"]
