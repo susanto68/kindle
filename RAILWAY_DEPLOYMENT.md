@@ -1,135 +1,159 @@
-# 🚀 Railway Deployment Guide
+# Railway Deployment Guide for PHP PDF Book Application
 
-## Quick Deploy Steps
+This guide explains how to deploy your PHP PDF book flip-page application on Railway.
 
-### 1. **Verify GitHub Repository**
-```bash
-# Check if your repo is connected
-git remote -v
-# Should show: origin https://github.com/susanto68/kindle.git
+## Files Location
+
+Place these files in the **root directory** of your GitHub repository:
+
+- `Dockerfile` - Docker configuration for PHP 8.2 + Apache
+- `railway.json` - Railway deployment configuration
+- `apache.conf` - Apache web server configuration
+- `.dockerignore` - Files to exclude from Docker build
+
+## File Structure
+
+```
+your-repo/
+├── Dockerfile          # ← Place here (root)
+├── railway.json        # ← Place here (root)
+├── apache.conf         # ← Place here (root)
+├── .dockerignore       # ← Place here (root)
+├── index.php           # ← Your main PHP file
+├── health.php          # ← Health check endpoint
+├── books/              # ← PDF files directory
+│   ├── book1.pdf
+│   └── book2.pdf
+├── reader.html         # ← PDF reader interface
+├── reader.js           # ← PDF reader JavaScript
+└── style.css           # ← Styling
 ```
 
-### 2. **Push Latest Changes**
-```bash
-git add .
-git commit -m "Enhanced Railway deployment configuration"
-git push origin main
+## What Each File Does
+
+### Dockerfile
+- Uses PHP 8.2 with Apache web server
+- Installs required system dependencies (git, unzip, curl, libzip-dev)
+- Installs PHP extensions (pdo, pdo_mysql, zip)
+- Installs Composer for dependency management
+- Enables Apache rewrite module for clean URLs
+- Exposes port 8080 (Railway requirement)
+- Uses `apache2-foreground` as start command
+
+### railway.json
+- Forces Railway to use Dockerfile instead of auto-detection
+- Sets health check path to `/health.php`
+- Configures restart policy for reliability
+
+### apache.conf
+- Configures Apache to listen on port 8080
+- Sets DocumentRoot to `/var/www/html`
+- Enables PHP processing
+- Configures health check endpoints
+- Allows access to PDF files
+
+### .dockerignore
+- Excludes unnecessary files from Docker build context
+- Improves build performance
+- Reduces image size
+
+## Deployment Steps
+
+1. **Push to GitHub**: Commit and push all files to your repository
+2. **Connect to Railway**: Link your GitHub repository in Railway
+3. **Deploy**: Railway will automatically build using the Dockerfile
+4. **Monitor**: Check the deployment logs for any issues
+
+## Health Check
+
+The application provides multiple health check endpoints:
+
+- `/health.php` - JSON response with detailed system status
+- `/health.html` - Simple HTML response
+- `/` - Root route that serves your main application
+
+Railway will use `/health.php` for health checks.
+
+## If Your App Uses a `public/` Folder
+
+If your PHP application has a `public/` folder structure like:
+
+```
+your-repo/
+├── public/
+│   ├── index.php
+│   ├── assets/
+│   └── ...
+├── src/
+├── vendor/
+└── ...
 ```
 
-### 3. **Railway Dashboard Steps**
-1. Go to [Railway.app](https://railway.app)
-2. Click "New Project"
-3. Select "Deploy from GitHub repo"
-4. Choose your `susanto68/kindle` repository
-5. Click "Deploy"
+**Modify the Dockerfile** by changing these lines:
 
-## 🚨 Common Deployment Issues & Solutions
+```dockerfile
+# Change this line:
+COPY . /var/www/html/
 
-### **Issue 1: Billing/Payment Method**
-**Problem**: "Payment method required" or deployment fails
-**Solution**: 
-- Add credit card to Railway account
-- Verify account email
-- Check free tier limits (500 hours/month)
+# To this:
+COPY . /var/www/html/
+RUN mv /var/www/html/public/* /var/www/html/ && \
+    rm -rf /var/www/html/public
 
-### **Issue 2: Build Failures**
-**Problem**: Docker build fails
-**Solution**:
-- Check Dockerfile syntax
-- Ensure all files are committed
-- Verify `.dockerignore` excludes unnecessary files
-
-### **Issue 3: Health Check Failures**
-**Problem**: Service deploys but health check fails
-**Solution**:
-- Check `/health.html` endpoint
-- Verify Apache configuration
-- Check logs in Railway dashboard
-
-### **Issue 4: Port Configuration**
-**Problem**: Service doesn't start
-**Solution**:
-- Ensure Dockerfile exposes port 80
-- Check Apache configuration
-- Verify Railway port settings
-
-## 🔍 Troubleshooting Commands
-
-### **Check Local Build**
-```bash
-# Test Docker build locally (if Docker is installed)
-docker build -t kindle-test .
-docker run -p 8080:80 kindle-test
+# And update apache.conf to use the correct DocumentRoot
 ```
 
-### **Verify Files**
+## Troubleshooting
+
+### Common Issues
+
+1. **Port 8080**: Ensure Apache listens on port 8080, not 80
+2. **Health Check Failures**: Check that `/health.php` returns HTTP 200
+3. **File Permissions**: PDF files should be readable by web server
+4. **Build Failures**: Check Docker build logs for dependency issues
+
+### Debug Commands
+
+If you need to debug inside the container:
+
 ```bash
-# Check if all necessary files are present
-ls -la
-# Should show: Dockerfile, railway.json, apache.conf, index.php, etc.
+# Access container shell
+railway shell
+
+# Check Apache status
+service apache2 status
+
+# Check PHP modules
+php -m
+
+# Check file permissions
+ls -la /var/www/html/
 ```
 
-### **Check Git Status**
-```bash
-git status
-git log --oneline -5
-```
+## Environment Variables
 
-## 📊 Railway Dashboard Monitoring
+Railway automatically provides:
+- `$PORT` - Mapped to port 8080 in container
+- `RAILWAY_STATIC_URL` - Set to "0" to disable static file serving
 
-### **Deployment Status**
-- **Building**: Docker image creation
-- **Deploying**: Service startup
-- **Running**: Service active
-- **Failed**: Check logs for errors
+## Performance Tips
 
-### **Health Check Endpoints**
-- **Primary**: `/health.html` (HTML response)
-- **Backup**: `/health.php` (JSON response)
-- **Main**: `/` (Library page)
+1. **Layer Caching**: Composer dependencies are installed before copying app code
+2. **File Exclusions**: `.dockerignore` reduces build context size
+3. **Optimized Autoloader**: Composer installs with `--optimize-autoloader`
+4. **PDF Access**: Direct file serving for PDFs without PHP processing
 
-### **Logs to Check**
-1. **Build Logs**: Docker build process
-2. **Deploy Logs**: Service startup
-3. **Runtime Logs**: Application errors
+## Security Notes
 
-## 🆘 Emergency Fixes
+- PDF files are publicly accessible (adjust if needed)
+- Apache rewrite module is enabled for clean URLs
+- Error logging is configured for debugging
+- Server status endpoint is available for monitoring
 
-### **If Deployment Completely Fails**
-1. Check Railway account status
-2. Verify repository permissions
-3. Try manual deployment
-4. Contact Railway support
+## Support
 
-### **If Service Won't Start**
-1. Check Dockerfile syntax
-2. Verify Apache configuration
-3. Check port conflicts
-4. Review build logs
-
-## 📞 Support Resources
-
-- **Railway Docs**: [docs.railway.app](https://docs.railway.app)
-- **Railway Discord**: [discord.gg/railway](https://discord.gg/railway)
-- **GitHub Issues**: Check your repository issues
-
-## ✅ Success Indicators
-
-Your deployment is successful when:
-- ✅ Railway shows "Running" status
-- ✅ Health check passes (`/health.html` loads)
-- ✅ Main page loads (`/` shows library)
-- ✅ PDF reader works (`/reader.html` opens)
-- ✅ TTS functionality works
-
-## 🚀 Next Steps After Deployment
-
-1. **Set Custom Domain** (optional)
-2. **Configure Environment Variables**
-3. **Set up Monitoring**
-4. **Test All Features**
-5. **Share Your App!**
-
----
-
-**Need Help?** Check Railway logs first, then consult this guide or Railway support.
+If you encounter issues:
+1. Check Railway deployment logs
+2. Verify health check endpoint returns 200 OK
+3. Ensure all required files are in the correct locations
+4. Check that port 8080 is properly configured

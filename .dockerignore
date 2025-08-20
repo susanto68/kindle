@@ -1,31 +1,33 @@
-# Git files
+# Git
 .git
 .gitignore
 
 # Documentation
 README.md
-
-# Logs
-logs/
-*.log
-
-# Temporary files
-*.tmp
-*.temp
-*.cache
+RAILWAY_DEPLOYMENT.md
+*.md
 
 # IDE files
-.vscode/
-.idea/
+.vscode
+.idea
 *.swp
 *.swo
-*~
 
 # OS files
 .DS_Store
 Thumbs.db
 
-# Environment files
-.env
-.env.local
-.env.production
+# Temporary files
+*.tmp
+*.log
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Railway
+railway.json
+
+# Apache config (we'll copy this separately)
+# apache.conf

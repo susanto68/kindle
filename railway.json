@@ -12,7 +12,6 @@
   "environments": {
     "production": {
       "variables": {
-        "NODE_ENV": "production",
         "RAILWAY_STATIC_URL": "0"
       }
     }
