@@ -35,8 +35,12 @@ RUN chown -R www-data:www-data /var/www/html \
 # Create a reliable health check endpoint
 RUN echo '<?php http_response_code(200); echo "OK"; ?>' > /var/www/html/health.php
 
+# Copy and set up the startup script
+COPY startup.sh /startup.sh
+RUN chmod +x /startup.sh
+
 # Expose port 8080 (Railway requirement)
 EXPOSE 8080
 
-# Use apache2-foreground for proper signal handling in Railway
-CMD ["apache2-foreground"]
+# Use custom startup script to prevent graceful shutdown
+CMD ["/startup.sh"]

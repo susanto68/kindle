@@ -5,16 +5,25 @@ This guide explains how to deploy your PHP PDF book flip-page application on Rai
 ## 🚨 **Issues Fixed**
 
 1. **Apache Domain Warning**: `AH00558: apache2: Could not reliably determine the server's fully qualified domain name`
-2. **SIGWINCH Signal**: `caught SIGWINCH, shutting down gracefully`
+2. **SIGWINCH Signal**: `caught SIGWINCH, shutting down gracefully` ✅ **FIXED**
 3. **Health Check Failures**: Railway container stops due to Apache issues
+
+## 🔧 **Signal Handling Fix**
+
+The SIGWINCH issue is now resolved with a custom startup script that:
+- ✅ **Ignores SIGWINCH signals** that cause graceful shutdown
+- ✅ **Prevents Apache from shutting down** on window change signals
+- ✅ **Uses proper signal trapping** to maintain container stability
+- ✅ **Keeps Apache running** even when Railway sends signals
 
 ## 📁 **Files Location**
 
 Place these files in the **root directory** of your GitHub repository:
 
-- `Dockerfile` - Docker configuration for PHP 8.2 + Apache (fixed)
+- `Dockerfile` - Docker configuration for PHP 8.2 + Apache (fixed signals)
 - `railway.json` - Railway deployment configuration
 - `apache.conf` - Apache configuration (fixed domain warnings)
+- `startup.sh` - Custom startup script for signal handling
 - `.dockerignore` - Files to exclude from Docker build
 
 ## 🏗️ **File Structure**
@@ -24,6 +33,7 @@ your-repo/
 ├── Dockerfile          # ← Place here (root)
 ├── railway.json        # ← Place here (root)
 ├── apache.conf         # ← Place here (root)
+├── startup.sh          # ← Place here (root) - NEW!
 ├── .dockerignore       # ← Place here (root)
 ├── index.php           # ← Your main PHP file (in root)
 ├── health.php          # ← Simple health check endpoint
@@ -37,19 +47,27 @@ your-repo/
 
 ## 🔧 **What Each File Does**
 
-### Dockerfile (Fixed for Railway)
+### Dockerfile (Fixed Signal Handling)
 - ✅ Uses PHP 8.2 with Apache web server
 - ✅ Installs required system dependencies (libzip-dev, libpng-dev, etc.)
 - ✅ Installs PHP extensions (pdo, pdo_mysql, zip)
 - ✅ **NO Composer** - Pure PHP project
 - ✅ Enables Apache rewrite and headers modules
 - ✅ **Fixes domain warnings** with proper Apache config
+- ✅ **Fixes SIGWINCH signals** with custom startup script
 - ✅ Exposes port 8080 (Railway requirement)
-- ✅ Uses `apache2-foreground` for proper signal handling
+- ✅ Uses custom startup script for proper signal handling
+
+### startup.sh (NEW - Signal Handling)
+- ✅ **Ignores SIGWINCH signals** that cause graceful shutdown
+- ✅ **Prevents Apache from shutting down** on container signals
+- ✅ **Maintains container stability** in Railway environment
+- ✅ **Proper signal trapping** for production deployment
 
 ### apache.conf (Fixed Domain Issues)
 - ✅ **ServerName localhost** - Suppresses domain warnings
 - ✅ **Global ServerName** - Prevents AH00558 errors
+- ✅ **GracefulShutdownTimeout 0** - Prevents graceful shutdowns
 - ✅ Configures Apache to listen on port 8080
 - ✅ Sets DocumentRoot to `/var/www/html`
 - ✅ Enables PHP processing
@@ -136,9 +154,11 @@ curl http://localhost:8080/
 ```
 
 ### **Expected Results:**
-- `/health.php` → HTTP 200, "OK"
-- `/health.html` → HTTP 200, HTML page
-- `/` → HTTP 200, Your main library page
+- ✅ `/health.php` → HTTP 200, "OK"
+- ✅ `/health.html` → HTTP 200, HTML page
+- ✅ `/` → HTTP 200, Your main library page
+- ✅ **No SIGWINCH signals**
+- ✅ **Apache stays running**
 
 ## 🐛 **Troubleshooting**
 
@@ -148,6 +168,7 @@ curl http://localhost:8080/
 2. **Health Check Failures**: Check that `/health.php` returns HTTP 200
 3. **File Permissions**: PDF files should be readable by web server
 4. **Build Failures**: Check Docker build logs for dependency issues
+5. **Signal Handling**: The startup script should prevent graceful shutdowns
 
 ### **Debug Commands**
 
@@ -168,6 +189,9 @@ ls -la /var/www/html/
 
 # Check Apache error logs
 tail -f /var/log/apache2/error.log
+
+# Check if startup script is working
+ps aux | grep apache
 ```
 
 ## 🌍 **Environment Variables**
@@ -183,6 +207,7 @@ Railway automatically provides:
 3. **PDF Access**: Direct file serving for PDFs without PHP processing
 4. **No Composer**: Faster builds without dependency resolution
 5. **Optimized Apache**: Minimal configuration for Railway environment
+6. **Signal Handling**: Custom startup script prevents unwanted shutdowns
 
 ## 🔒 **Security Notes**
 
@@ -190,6 +215,7 @@ Railway automatically provides:
 - Apache rewrite module is enabled for clean URLs
 - Error logging is configured for debugging
 - Server signature is disabled for cleaner logs
+- Signal handling prevents unauthorized shutdowns
 
 ## 🆘 **Support**
 
@@ -200,6 +226,7 @@ If you encounter issues:
 4. Check that port 8080 is properly configured
 5. **Test locally with Docker first**
 6. Check Apache error logs for domain warnings
+7. **Verify signal handling is working** - no SIGWINCH shutdowns
 
 ## ✅ **Success Indicators**
 
@@ -210,3 +237,4 @@ Your deployment is successful when:
 - ✅ PDF reader works (`/reader.html` opens)
 - ✅ **No Apache domain warnings in logs**
 - ✅ **No SIGWINCH signals causing shutdowns**
+- ✅ **Container stays running continuously**
