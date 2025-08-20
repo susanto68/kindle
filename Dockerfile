@@ -6,9 +6,6 @@ WORKDIR /var/www/html
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    curl \
     libzip-dev \
     libpng-dev \
     libjpeg-dev \
@@ -21,24 +18,13 @@ RUN docker-php-ext-install \
     pdo_mysql \
     zip
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
 # Enable Apache modules
 RUN a2enmod rewrite headers
 
 # Copy custom Apache configuration
 COPY apache.conf /etc/apache2/sites-available/000-default.conf
 
-# Copy composer files first (if they exist) for better layer caching
-COPY composer.json composer.lock* ./
-
-# Install Composer dependencies if composer.json exists
-RUN if [ -f composer.json ]; then \
-        composer install --no-dev --optimize-autoloader; \
-    fi
-
-# Copy application files
+# Copy all project files
 COPY . /var/www/html/
 
 # Set proper permissions

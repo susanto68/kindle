@@ -1,12 +1,12 @@
-# Railway Deployment Guide for PHP PDF Book Application
+# Railway Deployment Guide for PHP PDF Book Application (No Composer)
 
-This guide explains how to deploy your PHP PDF book flip-page application on Railway.
+This guide explains how to deploy your PHP PDF book flip-page application on Railway **without Composer**.
 
 ## Files Location
 
 Place these files in the **root directory** of your GitHub repository:
 
-- `Dockerfile` - Docker configuration for PHP 8.2 + Apache
+- `Dockerfile` - Docker configuration for PHP 8.2 + Apache (no Composer)
 - `railway.json` - Railway deployment configuration
 - `apache.conf` - Apache web server configuration
 - `.dockerignore` - Files to exclude from Docker build
@@ -19,7 +19,7 @@ your-repo/
 ├── railway.json        # ← Place here (root)
 ├── apache.conf         # ← Place here (root)
 ├── .dockerignore       # ← Place here (root)
-├── index.php           # ← Your main PHP file
+├── index.php           # ← Your main PHP file (in root)
 ├── health.php          # ← Health check endpoint
 ├── books/              # ← PDF files directory
 │   ├── book1.pdf
@@ -31,11 +31,11 @@ your-repo/
 
 ## What Each File Does
 
-### Dockerfile
+### Dockerfile (No Composer)
 - Uses PHP 8.2 with Apache web server
-- Installs required system dependencies (git, unzip, curl, libzip-dev)
+- Installs required system dependencies (libzip-dev, libpng-dev, etc.)
 - Installs PHP extensions (pdo, pdo_mysql, zip)
-- Installs Composer for dependency management
+- **NO Composer installation** (pure PHP project)
 - Enables Apache rewrite module for clean URLs
 - Exposes port 8080 (Railway requirement)
 - Uses `apache2-foreground` as start command
@@ -85,7 +85,6 @@ your-repo/
 │   ├── assets/
 │   └── ...
 ├── src/
-├── vendor/
 └── ...
 ```
 
@@ -101,6 +100,47 @@ RUN mv /var/www/html/public/* /var/www/html/ && \
     rm -rf /var/www/html/public
 
 # And update apache.conf to use the correct DocumentRoot
+```
+
+## Local Testing with Docker
+
+Before deploying to Railway, test your Docker setup locally:
+
+### 1. Build the Docker Image
+```bash
+# In your project directory
+docker build -t kindle-app .
+```
+
+### 2. Run the Container Locally
+```bash
+# Run on port 8080
+docker run -p 8080:8080 kindle-app
+
+# Or run on a different port (e.g., 3000)
+docker run -p 3000:8080 kindle-app
+```
+
+### 3. Test Health Checks
+```bash
+# Test health endpoints
+curl http://localhost:8080/health.php
+curl http://localhost:8080/health.html
+curl http://localhost:8080/
+```
+
+### 4. Test PDF Access
+- Open http://localhost:8080/ in your browser
+- Check if books are listed
+- Try opening a PDF reader
+
+### 5. Stop the Container
+```bash
+# Find container ID
+docker ps
+
+# Stop the container
+docker stop <container-id>
 ```
 
 ## Troubleshooting
@@ -138,10 +178,10 @@ Railway automatically provides:
 
 ## Performance Tips
 
-1. **Layer Caching**: Composer dependencies are installed before copying app code
+1. **Layer Caching**: Dependencies are installed before copying app code
 2. **File Exclusions**: `.dockerignore` reduces build context size
-3. **Optimized Autoloader**: Composer installs with `--optimize-autoloader`
-4. **PDF Access**: Direct file serving for PDFs without PHP processing
+3. **PDF Access**: Direct file serving for PDFs without PHP processing
+4. **No Composer**: Faster builds without dependency resolution
 
 ## Security Notes
 
@@ -157,3 +197,4 @@ If you encounter issues:
 2. Verify health check endpoint returns 200 OK
 3. Ensure all required files are in the correct locations
 4. Check that port 8080 is properly configured
+5. Test locally with Docker first
